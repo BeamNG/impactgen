@@ -70,6 +70,11 @@ images. Example zip names produced are:
 
 ## Setup
 
+### BeamNG
+
+This version of the tool works with BeamNG.tech v0.21.3.0 and BeamNGpy v1.19.1.
+Other versions of BeamNG.tech and BeamNGpy will not work with this version.
+
 ### Lua
 
 Prior to usage, the Lua extension contained in the `lua` folder of this
@@ -160,7 +165,7 @@ the simulator about the available materials.
 
 `impactgen compute-similarity <bng_home> --threshold 70`
 
-With this command one can precompute a similarity matrix that contains 
+With this command one can precompute a similarity matrix that contains
 [ORB](https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_feature2d/py_orb/py_orb.html)-based
 similarity scores. This matrix is used to avoid redundant variations of very
 similar images.
