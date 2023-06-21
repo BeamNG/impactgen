@@ -1,16 +1,5 @@
-# SPDX-License-Identifier: MIT
-"""
-.. module:: impactgen
-    :platform: Windows
-    :synopsis: Impactgen module to handle conversion of images to materials
-               usable in BeamNG.tech, image similarity matrix computation, and
-               distinct image selection.
-
-.. moduleauthor:: Marc Müller <mmueller@beamng.gmbh>
-"""
-
-import logging as log
 import json
+import logging as log
 import os
 import os.path
 import random
@@ -18,7 +7,6 @@ import random
 import cv2
 import numpy as np
 import PIL
-
 from wand.image import Image
 
 IMG_TYPES = {'.jpg', '.jpeg', '.png', '.bmp', '.gif'}

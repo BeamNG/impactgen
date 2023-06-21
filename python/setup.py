@@ -1,8 +1,7 @@
-# SPDX-License-Identifier: MIT
-
-import setuptools
 import os
 import os.path
+
+import setuptools
 
 
 def read(fil):

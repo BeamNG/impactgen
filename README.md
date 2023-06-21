@@ -75,6 +75,12 @@ images. Example zip names produced are:
 This version of the tool works with BeamNG.tech v0.21.3.0 and BeamNGpy v1.19.1.
 Other versions of BeamNG.tech and BeamNGpy will not work with this version.
 
+| Impactgen version | BeamNG.tech version | BeamNGpy version                                          |
+| ----------------- | ------------------- | --------------------------------------------------------- |
+| 1.1               | >=0.28              | corresponding to the BeamNG.tech version                  |
+| 1.0               | 0.21                | [1.19.1](https://github.com/BeamNG/BeamNGpy/tree/v1.19.1) |
+
+
 ### Lua
 
 Prior to usage, the Lua extension contained in the `lua` folder of this

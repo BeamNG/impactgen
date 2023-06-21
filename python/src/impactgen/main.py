@@ -1,27 +1,15 @@
-# SPDX-License-Identifier: MIT
-"""
-.. module:: impactgen
-    :platform: Windows
-    :synopsis: Impactgen module providing CLI to access the various functions
-               of the tool.
-
-.. moduleauthor:: Marc Müller <mmueller@beamng.gmbh>
-"""
-
 import logging as log
 import os
 import os.path
 import shutil
 import sys
-
 from itertools import product
 
 import click
 import numpy as np
 import yaml
 
-from . import materialmngr
-from . import ImpactGenerator
+from . import ImpactGenerator, materialmngr
 
 LOG = 'impactgen.log'
 CFG = 'impactgen.yml'
@@ -85,7 +73,7 @@ def setup_logging(log_file=None):
     term_handler = log.StreamHandler()
     handlers.append(term_handler)
     fmt = '%(asctime)s %(levelname)-8s %(message)s'
-    log.basicConfig(handlers=handlers, format=fmt, level=log.DEBUG)
+    log.basicConfig(handlers=handlers, format=fmt, level=log.INFO)
 
     sys.excepthook = log_exception
 

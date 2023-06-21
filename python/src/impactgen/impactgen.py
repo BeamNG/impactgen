@@ -1,33 +1,23 @@
-# SPDX-License-Identifier: MIT
-"""
-.. module:: impactgen
-    :platform: Windows
-    :synopsis: Main impactgen module which carries out scenario generation and
-               coordinating output creation.
-
-.. moduleauthor:: Marc Müller <mmueller@beamng.gmbh>
-"""
-
 import copy
 import hashlib
+import io
 import json
 import logging as log
 import random
-import os
-import os.path
 import time
-
+import zipfile
 from collections import defaultdict
+from pathlib import Path
 
 import numpy as np
-
 from beamngpy import BeamNGpy, Scenario, Vehicle
+from PIL import Image
 
 from . import materialmngr
+from .api import ImpactGenAPI
 
-
-PART_ANNOTATIONS = 'part_annotation_config.json'
-OBJ_ANNOTATIONS = 'annotations.json'
+PART_ANNOTATIONS = 'tech/part_annotation_config.json'
+OBJ_ANNOTATIONS = 'tech/annotations.json'
 
 
 class OptionSpace:
@@ -125,7 +115,7 @@ class ImpactGenerator:
                  poolsize=2, smallgrid=False, sim_mtx=None, similarity=0.5,
                  random_select=False, single=False):
         self.bng_home = bng_home
-        self.output = output
+        self.output = Path(output)
         self.config = config
         self.smallgrid = smallgrid
         self.single = single
@@ -161,14 +151,14 @@ class ImpactGenerator:
         self.vehicle_b = Vehicle('vehicle_b', model='etk800')
 
         self.scenario = Scenario(scenario_props['level'], 'impactgen')
-        self.scenario.add_vehicle(self.vehicle_a,
-                                  pos=scenario_props['a_spawn'], rot=(0, 0, 0))
-        self.scenario.add_vehicle(self.vehicle_b,
-                                  pos=scenario_props['b_spawn'], rot=(0, 0, 0))
+        self.scenario.add_vehicle(self.vehicle_a, pos=scenario_props['a_spawn'])
+        self.scenario.add_vehicle(self.vehicle_b, pos=scenario_props['b_spawn'])
 
         self.vehicle_a_parts = defaultdict(set)
         self.vehicle_a_config = None
         self.vehicle_b_config = None
+
+        self.api = ImpactGenAPI(self.bng)
 
     def generate_colors(self):
         return copy.deepcopy(self.config['colors'])
@@ -273,7 +263,7 @@ class ImpactGenerator:
                 self.vehicle_a_parts[k].append('')
 
     def init_settings(self):
-        self.bng.set_particles_enabled(False)
+        self.bng.settings.set_particles_enabled(False)
 
         self.generate_spaces()
 
@@ -305,51 +295,26 @@ class ImpactGenerator:
         config['parts'] = parts
         return config
 
-    def set_annotation_paths(self):
-        part_path = os.path.join(self.bng_home, PART_ANNOTATIONS)
-        part_path = os.path.abspath(part_path)
-        obj_path = os.path.join(self.bng_home, OBJ_ANNOTATIONS)
-        obj_path = os.path.abspath(obj_path)
-
-        req = dict(type='ImpactGenSetAnnotationPaths')
-        req['partPath'] = part_path
-        req['objPath'] = obj_path
-        self.bng.send(req)
-        resp = self.bng.recv()
-        assert resp['type'] == 'ImpactGenAnnotationPathsSet'
-
     def set_image_properties(self):
-        req = dict(type='ImpactGenSetImageProperties')
-        req['imageWidth'] = self.config['imageWidth']
-        req['imageHeight'] = self.config['imageHeight']
-        req['colorFmt'] = self.config['colorFormat']
-        req['annotFmt'] = self.config['annotFormat']
-        req['radius'] = self.config['cameraRadius']
-        req['height'] = self.config['cameraHeight']
-        req['fov'] = self.config['fov']
-
-        self.bng.send(req)
-        resp = self.bng.recv()
-        assert resp['type'] == 'ImpactGenImagePropertiesSet'
+        self.api.set_image_properties(
+            self.config['imageWidth'], self.config['imageHeight'], self.config['colorFormat'], self.config['annotFormat'],
+            self.config['cameraRadius'], self.config['cameraHeight'], self.config['fov'])
 
     def setup(self):
         self.scenario.make(self.bng)
         log.debug('Loading scenario...')
-        self.bng.load_scenario(self.scenario)
+        self.bng.scenario.load(self.scenario)
         log.debug('Setting steps per second...')
-        self.bng.set_steps_per_second(50)
-        log.debug('Enabling deterministic mode...')
-        self.bng.set_deterministic()
+        self.bng.settings.set_deterministic(50)
         log.debug('Starting scenario...')
-        self.bng.start_scenario()
-        log.debug('Scenario started. Sleeping 20s.')
-        time.sleep(20)
+        self.bng.scenario.start()
 
         self.init_parts()
         self.init_settings()
 
         log.debug('Setting annotation properties.')
-        self.set_annotation_paths()
+        self.part_path = (Path(self.bng_home) / PART_ANNOTATIONS).absolute()
+        self.obj_path = (Path(self.bng_home, OBJ_ANNOTATIONS)).absolute()
         self.set_image_properties()
 
     def settings_exhausted(self):
@@ -358,51 +323,18 @@ class ImpactGenerator:
             self.pole_space.exhausted() and \
             self.nocrash_space.exhausted()
 
-    def set_post_settings(self, vid, settings):
-        req = dict(type='ImpactGenPostSettings')
-        req['ego'] = vid
-        req['time'] = settings[0]
-        req['clouds'] = settings[1]
-        req['fog'] = settings[2]
-        req['color'] = settings[3]
-        if len(settings) > 4:
-            req['skybox'] = settings[4]
-        if len(settings) > 5:
-            req['ground'] = settings[5]
-        self.bng.send(req)
-        resp = self.bng.recv()
-        assert resp['type'] == 'ImpactGenPostSet'
-
-    def finished_producing(self):
-        req = dict(type='ImpactGenOutputGenerated')
-        self.bng.send(req)
-        resp = self.bng.recv()
-        assert resp['type'] == 'ImpactGenZipGenerated'
-        return resp['state']
-
-    def produce_output(self, color_name, annot_name):
-        while not self.finished_producing():
-            time.sleep(0.2)
-
-        req = dict(type='ImpactGenGenerateOutput')
-        req['colorName'] = color_name
-        req['annotName'] = annot_name
-        self.bng.send(req)
-        resp = self.bng.recv()
-        assert resp['type'] == 'ImpactGenZipStarted'
-        'ImpactGenZipStarted'
-
     def capture_post(self, crash_setting):
         log.info('Enumerating post-crash settings and capturing output.')
-        self.bng.switch_vehicle(self.vehicle_a)
+        self.vehicle_a.switch()
         ref_pos = ImpactGenerator.wca['ref_pos']
         if self.smallgrid:
             ref_pos = ImpactGenerator.smallgrid['ref_pos']
-        self.bng.teleport_vehicle(self.vehicle_a, ref_pos)
-        self.bng.teleport_vehicle(self.vehicle_b, (10000, 10000, 10000))
 
-        self.bng.step(50, wait=True)
-        self.bng.pause()
+        self.vehicle_a.teleport(ref_pos)
+        self.vehicle_b.teleport((10000, 10000, 10000))
+
+        self.bng.control.step(50, wait=True)
+        self.bng.control.pause()
 
         self.post_space = self.generate_post_space()
         while not self.post_space.exhausted():
@@ -414,20 +346,50 @@ class ImpactGenerator:
             key = hashlib.sha512(key).hexdigest()[:30]
 
             t = int(time.time())
-            color_name = '{}_{}_0_image.zip'.format(t, key)
-            annot_name = '{}_{}_0_annotation.zip'.format(t, key)
-            color_name = os.path.join(self.output, color_name)
-            annot_name = os.path.join(self.output, annot_name)
 
             log.info('Setting post settings.')
-            self.set_post_settings(self.vehicle_a.vid, post_setting)
+            self.api.set_post_settings(self.vehicle_a.vid, post_setting)
             log.info('Producing output.')
-            self.produce_output(color_name, annot_name)
+            output = self.api.produce_output()
+
+            color_name = str(self.output / f'{t}_{key}_0_image.zip')
+            annot_name = str(self.output / f'{t}_{key}_0_annotation.zip')
+            self.save_output(color_name, annot_name, output)
 
             if self.single:
                 break
 
         self.bng.resume()
+
+    def png_bytes_from_raw(self, data):
+        image_size = self.config['imageWidth'], self.config['imageHeight']
+        image = Image.frombytes('RGBA', image_size, data, 'raw')
+        output = io.BytesIO()
+        image.save(output, 'png')
+        data = output.getvalue()
+        output.close()
+
+        return data
+
+    def save_output(self, color_name, annot_name, output):
+        color_zip = zipfile.ZipFile(color_name, 'w')
+        annot_zip = zipfile.ZipFile(annot_name, 'w')
+
+        for filename, value in output.items():
+            if filename.startswith('annotation_'):
+                annot_zip.writestr(filename, self.png_bytes_from_raw(value))
+            elif filename.startswith('image_'):
+                color_zip.writestr(filename, self.png_bytes_from_raw(value))
+            else:
+                annot_zip.writestr(filename, value)
+                color_zip.writestr(filename, value)
+
+        for zip in (color_zip, annot_zip):
+            zip.write(self.part_path, 'partAnnotation.json')
+            zip.write(self.obj_path, 'objectAnnotation.json')
+
+        color_zip.close()
+        annot_zip.close()
 
     def run_t_bone_crash(self):
         log.info('Running t-bone crash setting.')
@@ -455,20 +417,9 @@ class ImpactGenerator:
         pos_b = list(props['t_pos_b'])
         pos_b[0] += offset
 
-        req = dict(type='ImpactGenRunTBone')
-        req['ego'] = self.vehicle_a.vid
-        req['other'] = self.vehicle_b.vid
-        req['config'] = config
-        req['aPosition'] = pos_a
-        req['angle'] = angle
-        req['bPosition'] = pos_b
-        req['bRotation'] = rot_b
-        req['throttle'] = throttle
         log.debug('Sending t-bone crash config.')
-        self.bng.send(req)
+        self.api.run_t_bone_crash(self.vehicle_a.vid, self.vehicle_b.vid, config, pos_a, angle, pos_b, rot_b, throttle)
         log.debug('T-Bone crash response received.')
-        resp = self.bng.recv()
-        assert resp['type'] == 'ImpactGenTBoneRan'
 
         return setting
 
@@ -499,20 +450,9 @@ class ImpactGenerator:
         pos_b = list(props['linear_pos_b'])
         pos_b[0] += offset
 
-        req = dict(type='ImpactGenRunLinear')
-        req['ego'] = self.vehicle_a.vid
-        req['other'] = self.vehicle_b.vid
-        req['config'] = config
-        req['aPosition'] = pos_a
-        req['angle'] = angle
-        req['bPosition'] = pos_b
-        req['bRotation'] = rot_b
-        req['throttle'] = throttle
         log.debug('Sending linear crash config.')
-        self.bng.send(req)
+        self.api.run_linear_crash(self.vehicle_a.vid, self.vehicle_b.vid, config, pos_a, angle, pos_b, rot_b, throttle)
         log.debug('Linear crash response received.')
-        resp = self.bng.recv()
-        assert resp['type'] == 'ImpactGenLinearRan'
 
         return setting
 
@@ -540,19 +480,10 @@ class ImpactGenerator:
         pos = list(props['pole_pos'])
         pos[0] += offset
 
-        req = dict(type='ImpactGenRunPole')
-        req['ego'] = self.vehicle_a.vid
-        req['config'] = config
-        req['position'] = pos
-        req['angle'] = angle
-        req['throttle'] = throttle
-        if self.smallgrid:
-            req['polePosition'] = props['pole']
+        pole = props['pole'] if self.smallgrid else None
         log.debug('Sending pole crash config.')
-        self.bng.send(req)
+        self.api.run_pole_crash(self.vehicle_a.vid, config, pos, angle, throttle, pole)
         log.debug('Got pole crash response.')
-        resp = self.bng.recv()
-        assert resp['type'] == 'ImpactGenPoleRan'
 
         return setting
 
@@ -567,20 +498,15 @@ class ImpactGenerator:
         vehicle_config = self.get_vehicle_config(setting)
         log.info('Got new vehicle config: %s', vehicle_config)
 
-        req = dict(type='ImpactGenRunNonCrash')
-        req['ego'] = self.vehicle_a.vid
-        req['config'] = vehicle_config
-        log.info('Sending Non-Crash request: %s', req)
-        self.bng.send(req)
-        resp = self.bng.recv()
-        assert resp['type'] == 'ImpactGenNonCrashRan'
+        log.info('Sending Non-Crash request')
+        self.api.run_no_crash(self.vehicle_a.vid, vehicle_config)
         log.info('Non-crash finished.')
 
         return setting
 
     def run_incident(self, incident):
         log.info('Setting up next incident.')
-        self.bng.display_gui_message('Setting up next incident...')
+        self.bng.ui.display_message('Setting up next incident...')
         setting = incident()
         self.capture_post(setting)
         return setting
@@ -599,7 +525,7 @@ class ImpactGenerator:
         while not self.settings_exhausted():
             log.info('Running incident %s of %s...', count,
                      self.total_possibilities)
-            self.bng.restart_scenario()
+            self.bng.scenario.restart()
             log.info('Scenario restarted.')
             time.sleep(5.0)
             self.vehicle_b.set_part_config(self.vehicle_b_config)
@@ -614,8 +540,7 @@ class ImpactGenerator:
 
     def run(self):
         log.info('Starting up BeamNG instance.')
-        self.bng.open(['impactgen/crashOutput'])
-        self.bng.skt.settimeout(1000)
+        self.bng.open(['tech/impactgen/crashOutput'])
         try:
             log.info('Setting up BeamNG instance.')
             self.setup()
