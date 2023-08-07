@@ -330,8 +330,8 @@ class ImpactGenerator:
         if self.smallgrid:
             ref_pos = ImpactGenerator.smallgrid['ref_pos']
 
-        self.vehicle_a.teleport(ref_pos)
-        self.vehicle_b.teleport((10000, 10000, 10000))
+        self.vehicle_a.teleport(ref_pos, reset=False)
+        self.vehicle_b.teleport((10000, 10000, 10000), reset=False)
 
         self.bng.control.step(50, wait=True)
         self.bng.control.pause()
@@ -363,7 +363,7 @@ class ImpactGenerator:
 
     def png_bytes_from_raw(self, data):
         image_size = self.config['imageWidth'], self.config['imageHeight']
-        image = Image.frombytes('RGBA', image_size, data, 'raw')
+        image = Image.frombytes('RGB', image_size, data, 'raw')
         output = io.BytesIO()
         image.save(output, 'png')
         data = output.getvalue()

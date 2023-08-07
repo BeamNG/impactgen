@@ -3,6 +3,7 @@ import logging as log
 import os
 import os.path
 import random
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -86,8 +87,11 @@ def compute_sim_matrix(bng_home, threshold=70):
 
 
 def load_sim_matrix(bng_home):
-    path = get_output_path(bng_home)
-    inpath = os.path.join(path, 'sim.npy')
+    path = Path(get_output_path(bng_home))
+    inpath = path / 'sim.npy'
+    if not inpath.exists():
+        raise FileNotFoundError('Similarity matrix not found. Please run the `convert-materials` and `compute-similarity` commands according to the README first.')
+
     return np.load(inpath)
 
 
