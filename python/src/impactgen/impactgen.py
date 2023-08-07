@@ -363,7 +363,7 @@ class ImpactGenerator:
 
     def png_bytes_from_raw(self, data):
         image_size = self.config['imageWidth'], self.config['imageHeight']
-        image = Image.frombytes('RGB', image_size, data, 'raw')
+        image = Image.frombytes('RGBA', image_size, data, 'raw').convert('RGB')
         output = io.BytesIO()
         image.save(output, 'png')
         data = output.getvalue()
