@@ -72,14 +72,15 @@ images. Example zip names produced are:
 
 ### BeamNG
 
-This version of the tool works with BeamNG.tech v0.21.3.0 and BeamNGpy v1.19.1.
-Other versions of BeamNG.tech and BeamNGpy will not work with this version.
+This version of the tool works with BeamNG.tech v0.30.5.0 and BeamNGpy v1.27. Table of compatibility
+of different versions of Impactgen are here:
 
 | Impactgen version | BeamNG.tech version | BeamNGpy version                                          |
 | ----------------- | ------------------- | --------------------------------------------------------- |
-| 1.1               | >=0.28              | corresponding to the BeamNG.tech version                  |
+| 1.1               | >=0.30              | corresponding to the BeamNG.tech version                  |
 | 1.0               | 0.21                | [1.19.1](https://github.com/BeamNG/BeamNGpy/tree/v1.19.1) |
 
+Other versions of BeamNG.tech and BeamNGpy will not work with this version.
 
 ### Lua
 
@@ -139,7 +140,7 @@ started using the command `impactgen generate`. At least two arguments are
 required for this to work: A path to the copy of BeamNG.tech and a path to
 the folder zips should be placed into. The path to BeamNG.tech needs to point
 to the folder containing files like `startup.ini` — *not* the `Bin64` folder
-which contains the actual binaries. An example invokation would be:
+which contains the actual binaries. An example invocation would be:
 
 `impactgen generate D:\BeamNG.tech\ D:\data\`
 
@@ -172,7 +173,7 @@ the simulator about the available materials.
 `impactgen compute-similarity <bng_home> --threshold 70`
 
 With this command one can precompute a similarity matrix that contains
-[ORB](https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_feature2d/py_orb/py_orb.html)-based
+[ORB](https://opencv24-python-tutorials.readthedocs.io/en/latest/py_tutorials/py_feature2d/py_orb/py_orb.html)-based
 similarity scores. This matrix is used to avoid redundant variations of very
 similar images.
 
