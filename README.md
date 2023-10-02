@@ -75,10 +75,10 @@ images. Example zip names produced are:
 This version of the tool works with BeamNG.tech v0.30.5.0 and BeamNGpy v1.27. Table of compatibility
 of different versions of Impactgen are here:
 
-| Impactgen version | BeamNG.tech version | BeamNGpy version                                          |
-| ----------------- | ------------------- | --------------------------------------------------------- |
-| 1.1               | >=0.30              | corresponding to the BeamNG.tech version                  |
-| 1.0               | 0.21                | [1.19.1](https://github.com/BeamNG/BeamNGpy/tree/v1.19.1) |
+| Impactgen version                                    | BeamNG.tech version | BeamNGpy version                                          |
+| ---------------------------------------------------- | ------------------- | --------------------------------------------------------- |
+| [1.1](https://github.com/BeamNG/impactgen/tree/v1.1) | >=0.30              | corresponding to the BeamNG.tech version                  |
+| [1.0](https://github.com/BeamNG/impactgen/tree/v1.0) | 0.21                | [1.19.1](https://github.com/BeamNG/BeamNGpy/tree/v1.19.1) |
 
 Other versions of BeamNG.tech and BeamNGpy will not work with this version.
 
