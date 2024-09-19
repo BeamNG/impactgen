@@ -361,12 +361,15 @@ class ImpactGenerator:
 
         self.bng.resume()
 
-    def png_bytes_from_raw(self, data):
+    def png_bytes_from_raw(self, data: bytes) -> bytes:
+        if len(data) == 0:
+            log.error('Received empty image/annotation data!')
+            return bytes()
         image_size = self.config['imageWidth'], self.config['imageHeight']
         image = Image.frombytes('RGBA', image_size, data, 'raw').convert('RGB')
         output = io.BytesIO()
         image.save(output, 'png')
-        data = output.getvalue()
+        data: bytes = output.getvalue()
         output.close()
 
         return data
