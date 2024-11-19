@@ -139,7 +139,7 @@ class ImpactGenerator:
 
         self.total_possibilities = 0
 
-        self.bng = BeamNGpy('localhost', 64256, home=bng_home)
+        self.bng = BeamNGpy('localhost', 25252, home=bng_home)
 
         self.scenario = None
 
