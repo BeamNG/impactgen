@@ -42,7 +42,7 @@ and parts are still varied in this case. Possible crash scenarios include:
                     B. Here, the speed of B, the angle of impact, and the
                     position of impact are varied randomly in addition to the
                     parameters listed above.
- - Frontal impact:  Vehicle B is stationary and gets hit in the front by
+ - Frontal impact:  Vehicle A is stationary and gets hit in the front by
                     vehicle B. The speed of B, the angle of impact, and the
                     position of impact are varied randomly in addition to the
                     parameters listed above.
@@ -72,22 +72,24 @@ images. Example zip names produced are:
 
 ### BeamNG
 
-This version of the tool works with BeamNG.tech v0.30.5.0 and BeamNGpy v1.27. Table of compatibility
-of different versions of Impactgen are here:
+This version of the tool works with BeamNG.tech and BeamNGpy. Table of compatibility of different versions of Impactgen is here:
 
 | Impactgen version                                    | BeamNG.tech version | BeamNGpy version                                          |
 | ---------------------------------------------------- | ------------------- | --------------------------------------------------------- |
-| [1.1](https://github.com/BeamNG/impactgen/tree/v1.1) | >=0.30              | corresponding to the BeamNG.tech version                  |
+| [1.2](https://github.com/BeamNG/impactgen/tree/v1.2) | >=0.35              | [1.32.0](https://github.com/BeamNG/BeamNGpy/tree/v1.32)   |
+| [1.1](https://github.com/BeamNG/impactgen/tree/v1.1) | >=0.30              | [1.27.1](https://github.com/BeamNG/BeamNGpy/tree/v1.27.1) |
 | [1.0](https://github.com/BeamNG/impactgen/tree/v1.0) | 0.21                | [1.19.1](https://github.com/BeamNG/BeamNGpy/tree/v1.19.1) |
 
 Other versions of BeamNG.tech and BeamNGpy will not work with this version.
 
-### Lua
 
-Prior to usage, the Lua extension contained in the `lua` folder of this
-repository needs to be placed either inside the local BeamNG.tech installation
-or packed up as a mod and placed in the userpath to make it available to
-this application.
+### Lua extensions
+
+
+The required Lua extensions are located in the following paths in your BeamNG.tech installation folder:
+- `\lua\vehicle\extensions\tech\impactgen\damageEvaluation.lua`
+- `\lua\ge\extensions\tech\impactgen\crashOutput.lua`
+
 
 ### Python
 
