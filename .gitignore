@@ -161,3 +161,5 @@ MANIFEST
 html
 html/*
 .vscode
+impactgen.yml
+out.json
