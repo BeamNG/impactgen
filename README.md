@@ -1,5 +1,8 @@
 # Impact Data Generation
 
+> [!NOTE]  
+> The project is currently incompatible with BeamNG.tech >=0.35, please use older versions of the software.
+
 ## About
 
 This Python script utilizes [BeamNG.tech](https://beamng.tech/) and the
@@ -76,7 +79,8 @@ This version of the tool works with BeamNG.tech and BeamNGpy. Table of compatibi
 
 | Impactgen version                                    | BeamNG.tech version | BeamNGpy version                                          |
 | ---------------------------------------------------- | ------------------- | --------------------------------------------------------- |
-| [1.2](https://github.com/BeamNG/impactgen/tree/v1.2) | >=0.34              | [1.31.0](https://github.com/BeamNG/BeamNGpy/tree/v1.31)   |
+| **NOT COMPATIBLE**                                   | >=0.35              | [1.31.0](https://github.com/BeamNG/BeamNGpy/tree/v1.31)   |
+| [1.2](https://github.com/BeamNG/impactgen/tree/v1.2) | 0.34                | [1.31.0](https://github.com/BeamNG/BeamNGpy/tree/v1.31)   |
 | [1.1](https://github.com/BeamNG/impactgen/tree/v1.1) | >=0.30              | [1.27.1](https://github.com/BeamNG/BeamNGpy/tree/v1.27.1) |
 | [1.0](https://github.com/BeamNG/impactgen/tree/v1.0) | 0.21                | [1.19.1](https://github.com/BeamNG/BeamNGpy/tree/v1.19.1) |
 
